@@ -1,4 +1,5 @@
 from graphs.graph import Graph
+import re
 
 
 def read_graph_from_file(filename):
@@ -13,17 +14,26 @@ def read_graph_from_file(filename):
     Graph: A directed or undirected Graph object containing the specified
     vertices and edges
     """
+    with open(filename) as f:
+        line = f.readline().strip(' \n')
+        # first line
+        if line == 'G':
+            g = graph(is_directed=False)
+        elif line == 'D':
+            g = Graph()
+        else:
+            raise ValueError(line)
 
-    # TODO: Use 'open' to open the file
+        vertices = re.findall('[A-Z]|[0-9]', f.readline())
+        for _, v in enumerate(vertices):
+            g.add_vertex(v)
 
-    # TODO: Use the first line (G or D) to determine whether graph is directed 
-    # and create a graph object
+        line = f.readline()
+        while line:
+            vertex= re.findall('[A-Z]|[0-9]', line)
+            g.add_edge(vertex[0], vertex[1])
+            line = f.readline
 
-    # TODO: Use the second line to add the vertices to the graph
-
-    # TODO: Use the 3rd+ line to add the edges to the graph
-
-    pass
 
 if __name__ == '__main__':
 
