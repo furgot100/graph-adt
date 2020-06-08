@@ -66,9 +66,8 @@ class Graph:
         Returns:
         Vertex: The new vertex object.
         """
-        vertex = Vertex(vertex_id)
-        self.__vertex_dict[vertex_id] = vertex
-        return vertex
+        self.__vertex_dict[vertex_id] = Vertex(vertex_id)
+        return self.__vertex_dict.get(vertex_id)
         
 
     def get_vertex(self, vertex_id):
@@ -87,13 +86,16 @@ class Graph:
         vertex_id1 (string): The unique identifier of the first vertex.
         vertex_id2 (string): The unique identifier of the second vertex.
         """
-        if vertex_id1 not in self.__vertex_dict:
+        if self.get_vertex(vertex_id1) is None:
             self.add_vertex(vertex_id1)
-        if vertex_id2 not in self.__vertex_dict:
+        if self.get_vertex(vertex_id2) is None:
             self.add_vertex(vertex_id2)
 
         # Addes id2 with id1 to make an edge
         self.__vertex_dict[vertex_id1].add_neighbor(self.__vertex_dict[vertex_id2])
+
+        if not self.__is_directed:
+            self.__vertex_dict[vertex_id2].add_neighbor(self.__vertex_dict[vertex_id1])
         
     def get_vertices(self):
         """
@@ -203,4 +205,25 @@ class Graph:
         Returns:
         list<string>: All vertex ids that are `target_distance` away from the start vertex
         """
-        pass
+        # already seen
+        visited = set()
+        target_vertices = []
+        
+        queue = deque()
+        # adds id and distance together
+        queue.append((start_id, 0))
+        visited.add(start_id)
+
+        while queue:
+            v = queue.pop()
+
+            if v[1] == target_distance:
+                target_vertices.append(v[0])
+
+            for _, vertex in enumerate(self.get_vertex(v[0]).get_neighbors()):
+                if vertex.get_id() not in visited:
+                    queue.append((vertex.get_id(), v[1] + 1))
+                    visited.add(vertex.get_id())
+
+
+        return target_vertices
