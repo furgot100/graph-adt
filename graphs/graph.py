@@ -1,4 +1,5 @@
 from collections import deque
+from random import choice
 
 class Vertex(object):
     """
@@ -86,12 +87,12 @@ class Graph:
         vertex_id1 (string): The unique identifier of the first vertex.
         vertex_id2 (string): The unique identifier of the second vertex.
         """
-        if self.get_vertex(vertex_id1) is None:
+        if vertex_id1 not in self.__vertex_dict:
             self.add_vertex(vertex_id1)
-        if self.get_vertex(vertex_id2) is None:
+        if vertex_id2 not in self.__vertex_dict:
             self.add_vertex(vertex_id2)
 
-        # Addes id2 with id1 to make an edge
+        # Add vertex_id2 as neighbor to vertex_id1 to make link/edge
         self.__vertex_dict[vertex_id1].add_neighbor(self.__vertex_dict[vertex_id2])
 
         if not self.__is_directed:
@@ -215,15 +216,151 @@ class Graph:
         visited.add(start_id)
 
         while queue:
-            v = queue.pop()
+            # removes vertex_obj from queue and return it
+            current_vertex_obj = queue.popleft()
 
-            if v[1] == target_distance:
-                target_vertices.append(v[0])
+            current_vertex_id = current_vertex_obj[0]
+            vertex_distance = current_vertex_obj[1]
 
-            for _, vertex in enumerate(self.get_vertex(v[0]).get_neighbors()):
-                if vertex.get_id() not in visited:
-                    queue.append((vertex.get_id(), v[1] + 1))
-                    visited.add(vertex.get_id())
+            # if distances match, add to n_away_vertices
+            if vertex_distance == target_distance:
+                target_vertices.append(current_vertex_id)
 
+            # get neighbors of current vertex
+            neighbors = self.get_vertex(current_vertex_id).get_neighbors()
 
-        return target_vertices
+            for neighbor in neighbors:
+                # print(neighbor)
+                if neighbor.get_id() not in visited:
+                    queue.append((neighbor.get_id(), vertex_distance + 1))
+                    visited.add(neighbor.get_id())
+
+            return target_vertices
+
+    def is_bipartite(self):
+        '''
+        Return True if bipartite
+        '''
+        queue = deque()
+        visited = {}
+
+        current_color = 0
+
+        current_vertex_id = choice(list(self.__vertex_dict.keys()))
+
+        queue.append(current_vertex_id)
+        visited[current_vertex_id] = current_color
+
+        while queue:
+            current_color ^= 1
+
+            current_vertex_id = queue.popleft()
+
+            neighbors = self.get_vertex(current_vertex_id).get_neighbors()
+
+            for neighbor in neighbors:
+                if neighbor.get_id() not in visited.keys():
+                    visited[neighbor.get_id()] = current_color
+
+                    queue.append(neighbor.get_id())
+                else:
+                    if visited[current_vertex_id] == visited[neighbor.get_id()]:
+                        return False
+
+        return True
+
+    def find_connected_components(self):
+        """
+        Return a list of all connected components, with each connected component represented as a list of vertex ids.
+        """
+        connected = []
+        visited = set()
+        queue = deque()
+        components = []
+
+        current_vertex_id = choice(list(self.__vertex_dict.keys()))
+        visited.add(current_vertex_id)
+        queue.append(current_vertex_id)
+
+        while queue:
+            current_vertex_id = queue.popleft()
+            components.append(current_vertex_id)
+
+            neighbors = self.get_vertex(current_vertex_id).get_neighbors()
+
+            for neighbor in neighbors:
+                if neighbor.get_id() not in visited:
+                    visited.add(neighbor.get_id())
+                    components.append(neighbor.get_id())
+            
+            connected.append(components)
+            components = []
+
+            if len(visited) == len(list(self.__vertex_dict.keys())):
+                break
+
+            unvisited = [vertex for vertex in list(self.__vertex_dict.keys()) if vertex not in visited]
+
+            current_vertex_id = choice(unvisited)
+
+            visited.add(current_vertex_id)
+            queue.append(current_vertex_id)
+
+        return connected
+
+    def find_path_dfs(self,start_id,target_id):
+        """
+        DFS using stacks
+        """
+        if not self.contains_id(start_id) or not self.contains_id(target_id):
+            raise KeyError("One or both vertices are not in the graph!")
+
+        # queue of vertices to visit next
+        stack = deque()
+        stack.append(self.get_vertex(start_id))
+        
+        # vertex keys we've seen before and their paths from the start vertex
+        path_to_target = {
+            start_id: [start_id]
+        }
+
+        while stack:
+            current_vertex_obj = stack.pop() # vertex obj to visit next
+            current_vertex_id = current_vertex_obj.get_id()
+
+            # found target, can stop the loop early
+            if current_vertex_id == target_id:
+                break
+
+            neighbors = current_vertex_obj.get_neighbors()
+            for neighbor in neighbors:
+                if neighbor.get_id() not in path_to_target:
+                    stack.append(neighbor)
+                    # print(vertex_id_to_path)
+
+                    current_path = path_to_target[current_vertex_id]
+                    # extend the path by 1 vertex
+                    next_path = current_path + [neighbor.get_id()]
+                    path_to_target[neighbor.get_id()] = next_path
+                    
+        if target_id not in path_to_target: # path not found
+            return None
+
+        return path_to_target[target_id]
+
+    def dfs_traversal(self, start_id):
+        visited = set()
+
+        def dfs_traversal_recursive(start_vertex):
+            print(f'Visiting vertex {start_vertex.get_id()}')
+
+            # recurse for each vertex in neighbors
+            for neighbor in start_vertex.get_neighbors():
+                if neighbor.get_id() not in visited:
+                    visited.add(neighbor.get_id())
+                    dfs_traversal_recursive(neighbor)
+            return
+
+        visited.add(start_id)
+        start_vertex = self.get_vertex(start_id)
+        dfs_traversal_recursive(start_vertex)          
