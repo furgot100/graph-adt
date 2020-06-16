@@ -363,4 +363,34 @@ class Graph:
 
         visited.add(start_id)
         start_vertex = self.get_vertex(start_id)
-        dfs_traversal_recursive(start_vertex)          
+        dfs_traversal_recursive(start_vertex)   
+
+    def contains_cycle(self, vertex, visited):
+        """Return True if the graph contains a cycle, False otherwise."""
+
+        # base cases: if we hit cycle or if len(visited) == size of graph
+
+        # neighbors = vertex.get_neighbors()
+
+        # for neighbor in neighbors:
+            # if  of current vertex in visited, return True
+            # every node visited, return False
+        # get neighbors of vertex
+        # add current vertex to visited
+        # call contains_cycle(vertex_neighbors)
+
+        pass
+
+    def topological_sort(self):
+        """    
+        Return a valid ordering of vertices in a directed acyclic graph. If the graph contains a cycle, throw a ValueError.
+        """    
+        # TODO: Create a stack to hold the vertex ordering.  
+            
+        # TODO: For each unvisited vertex, execute a DFS from that vertex.    
+
+        # TODO: On the way back up the recursion tree (that is, after visiting a vertex's neighbors), add the vertex to the stack.    
+
+        # TODO: Reverse the contents of the stack and return it as a valid ordering.    
+        
+        pass       
